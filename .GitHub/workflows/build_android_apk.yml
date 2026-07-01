@@ -1,0 +1,71 @@
+name: Build BloodRing Apex Royale 3D Android APK
+
+on:
+  push:
+    branches: [ main, production, release/* ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  verify-and-build-apk:
+    name: Build Android 3D Battle Royale APK
+    runs-only: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Setup Node.js v20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Python v3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install Backend Dependencies & Verify Server
+        run: |
+          cd backend
+          npm install --no-audit --no-fund
+          node -e "require('./server.js'); console.log('Backend verified!'); process.exit(0);"
+
+      - name: Execute Automatic Asset Pipeline & Equalization
+        run: |
+          python3 Tools/generate_assets_pipeline.py
+          python3 Tools/equalize_all_assets.py
+          python3 Tools/build_manifest.py
+
+      - name: Execute QA Quality Gate Suite
+        run: |
+          python3 Tools/qa_test_runner.py
+
+      - name: Build Android APK via GameCI Unity Builder
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          targetPlatform: Android
+          buildName: BloodRing_ApexRoyale3D
+          buildMethod: MobileAndroidBuildConfigurator.BuildMobile3DAndroidApk
+          androidAppBundle: false
+          androidKeystoreName: user.keystore
+          androidKeystorePass: ${{ secrets.KEYSTORE_PASS }}
+          androidKeyaliasName: bloodring
+          androidKeyaliasPass: ${{ secrets.KEYALIAS_PASS }}
+
+      - name: Upload APK Release Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: BloodRing_ApexRoyale3D_Android_APK
+          path: build/Android/**/*.apk
+          retention-days: 30
