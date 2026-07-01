@@ -37,11 +37,17 @@ jobs:
           npm install --no-audit --no-fund
           node -e "require('./server.js'); console.log('Backend verified!'); process.exit(0);"
 
+      - name: Install Python Asset Pipeline Dependencies
+        run: |
+          pip install pillow
+
       - name: Execute Automatic Asset Pipeline & Equalization
         run: |
           python3 Tools/generate_assets_pipeline.py
           python3 Tools/equalize_all_assets.py
           python3 Tools/build_manifest.py
+          python3 Tools/generate_liveops_analytics.py
+          python3 Tools/generate_system_docs_configs.py
 
       - name: Execute QA Quality Gate Suite
         run: |
