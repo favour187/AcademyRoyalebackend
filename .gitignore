@@ -39,5 +39,6 @@ Assets/StreamingAssets/AssetBundles/
 
 [Bb]ee/
 Packages/packages-lock.json
+node_modules/
 
 
