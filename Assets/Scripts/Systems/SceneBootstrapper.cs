@@ -24,7 +24,7 @@ public class SceneBootstrapper
     {
         Debug.Log("Bootstrapping Scene: " + sceneName);
 
-        if (sceneName == "SplashScreen" && Object.FindObjectOfType<SplashController>() == null)
+        if ((sceneName == "SplashScreen" || sceneName == "SplashLogo" || sceneName == "Splash") && Object.FindObjectOfType<SplashController>() == null)
         {
             GameObject go = new GameObject("[SplashController]");
             go.AddComponent<SplashController>();
