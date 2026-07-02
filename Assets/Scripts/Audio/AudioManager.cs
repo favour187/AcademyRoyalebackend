@@ -193,6 +193,32 @@ public class AudioManager : MonoBehaviour
     public void PlayWinSound() { if (sfxSource != null && winClip != null) { sfxSource.PlayOneShot(winClip); PlayVOVictory(); } }
     public void PlayLoseSound() { if (sfxSource != null && loseClip != null) sfxSource.PlayOneShot(loseClip); }
 
+    private readonly Dictionary<string, AudioClip> _dynamicSfxCache = new Dictionary<string, AudioClip>();
+
+    /// <summary>Play a one-shot SFX clip looked up by name from Resources/Audio/SFX (cached after first load).</summary>
+    public void PlaySFX(string clipName)
+    {
+        if (sfxSource == null || string.IsNullOrEmpty(clipName)) return;
+        if (!_dynamicSfxCache.TryGetValue(clipName, out AudioClip clip) || clip == null)
+        {
+            clip = Resources.Load<AudioClip>("Audio/SFX/" + clipName);
+            if (clip != null) _dynamicSfxCache[clipName] = clip;
+        }
+        if (clip != null) sfxSource.PlayOneShot(clip);
+    }
+
+    /// <summary>Play a one-shot voiceover clip looked up by name from Resources/Audio/VO (cached after first load).</summary>
+    public void PlayVO(string clipName)
+    {
+        if (voSource == null || string.IsNullOrEmpty(clipName)) return;
+        if (!_dynamicSfxCache.TryGetValue(clipName, out AudioClip clip) || clip == null)
+        {
+            clip = Resources.Load<AudioClip>("Audio/VO/" + clipName);
+            if (clip != null) _dynamicSfxCache[clipName] = clip;
+        }
+        if (clip != null) voSource.PlayOneShot(clip);
+    }
+
     public void SetZoneDamageActive(bool active, float shrinkProgress = 0f)
     {
         if (zoneDamageSource == null) return;
