@@ -33,10 +33,24 @@ public class PlayerController : NetworkBehaviour
     private Transform spectatorTarget = null; private List<Transform> spectatePool = new List<Transform>(); private int spectateIndex = 0;
     private Vector3 remotePosTarget; private Quaternion remoteRotTarget;
 
+    public static PlayerController Instance { get; private set; }
+
     public bool IsInvisible { get { return netIsInvisible.Value; } }
+
+    public float GetCurrentHP() { return netHP.Value; }
+    public float GetMaxHP() { return maxHP; }
+    public void HealHP(float amount) { if (IsServer) netHP.Value = Mathf.Min(maxHP, netHP.Value + amount); else HealHPServerRpc(amount); }
+
+    [ServerRpc] private void HealHPServerRpc(float amount) { netHP.Value = Mathf.Min(maxHP, netHP.Value + amount); }
+
+    public override void OnNetworkDespawn()
+    {
+        if (Instance == this) Instance = null;
+    }
 
     public override void OnNetworkSpawn()
     {
+        if (IsOwner) Instance = this;
         Debug.Log("OnNetworkSpawn for Polished BloodRing Apex Player ID: " + OwnerClientId);
         playerName = NetworkController.Instance != null ? NetworkController.Instance.GetPlayerNickname(OwnerClientId) : ("Player_" + OwnerClientId);
         string charChoice = NetworkController.Instance != null ? NetworkController.Instance.GetPlayerCharacter(OwnerClientId) : "DJNeon";
