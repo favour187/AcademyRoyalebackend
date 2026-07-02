@@ -48,6 +48,18 @@ namespace BloodRing.Art
             return sprite;
         }
 
+        private static readonly Dictionary<string, Material> _matCache = new Dictionary<string, Material>();
+
+        /// <summary>Load (and cache) a Material asset by its path relative to Resources/Art.</summary>
+        public static Material GetMaterial(string relativePath)
+        {
+            if (string.IsNullOrEmpty(relativePath)) return null;
+            if (_matCache.TryGetValue(relativePath, out var cached) && cached != null) return cached;
+            Material mat = Resources.Load<Material>(Root + "/" + relativePath);
+            if (mat != null) _matCache[relativePath] = mat;
+            return mat;
+        }
+
         // --- Convenience category helpers (Prioritizing Genuine AI-Generated Art) ---
 
         public static Texture2D Character(string heroName) => LoadTexture("Characters/" + heroName) ?? LoadTexture("Characters/" + heroName + "_3D") ?? LoadTexture("Characters/Hero_Rosa_3D");
